@@ -1,4 +1,4 @@
-package com.example.vkfeeds.presentation.feedposts
+package com.example.vkfeeds.presentation.news
 
 import androidx.lifecycle.ViewModel
 import com.example.vkfeeds.domain.Option
