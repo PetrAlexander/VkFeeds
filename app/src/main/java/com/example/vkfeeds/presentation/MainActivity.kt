@@ -1,53 +1,73 @@
 package com.example.vkfeeds.presentation
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.unit.dp
-import com.example.vkfeeds.presentation.feedposts.PostItem
-import com.example.vkfeeds.presentation.feedposts.PostViewModel
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.getValue
+import androidx.navigation.compose.currentBackStackEntryAsState
+import com.example.vkfeeds.navigation.AppNavGraph
+import com.example.vkfeeds.navigation.NavigationItem
+import com.example.vkfeeds.navigation.rememberNavigationState
+import com.example.vkfeeds.presentation.favourite.Favourite
+import com.example.vkfeeds.presentation.news.NewsScreen
+import com.example.vkfeeds.presentation.news.PostViewModel
+import com.example.vkfeeds.presentation.profile.Profile
 import com.example.vkfeeds.presentation.theme.VkFeedsTheme
 
 class MainActivity : ComponentActivity() {
     private val viewModel by viewModels<PostViewModel>()
 
+    @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             VkFeedsTheme {
-                val posts = viewModel.posts.collectAsState()
-                LazyColumn(
-                    contentPadding = PaddingValues(
-                        start = 8.dp,
-                        end = 8.dp,
-                        top = 16.dp,
-                        bottom = 16.dp
-                    ),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(items = posts.value, key = { it.id }) { post ->
-                        PostItem(
-                            post = post,
-                            onCommentsClick = { option ->
-                                viewModel.updatePostOption(post, option)
-                            },
-                            onViewsClick = { option ->
-                                viewModel.updatePostOption(post, option)
-                            },
-                            onRepliesClick = { option ->
-                                viewModel.updatePostOption(post, option)
-                            },
-                            onLikesClick = { option ->
-                                viewModel.updatePostOption(post, option)
-                            },
-                        )
+                val navigationState = rememberNavigationState()
+                Scaffold(
+                    bottomBar = {
+                        val backStackEntry by navigationState.navHostController.currentBackStackEntryAsState()
+                        val currentRoute = backStackEntry?.destination?.route
+                        NavigationBar {
+                            val navItems = listOf(
+                                NavigationItem.News,
+                                NavigationItem.Favourite,
+                                NavigationItem.Profile
+                            )
+                            navItems.forEach { navItem ->
+                                NavigationBarItem(
+                                    selected = currentRoute == navItem.screen.route,
+                                    onClick = { navigationState.navigateTo(navItem.screen.route) },
+                                    icon = {
+                                        Icon(
+                                            imageVector = navItem.imageVector,
+                                            contentDescription = null
+                                        )
+                                    },
+                                    label = { Text(text = getString(navItem.title)) },
+                                    colors = NavigationBarItemDefaults.colors(
+                                        selectedIconColor = MaterialTheme.colorScheme.onPrimary,
+                                        unselectedIconColor = MaterialTheme.colorScheme.onSecondary,
+                                    )
+                                )
+                            }
+                        }
                     }
+                ) {
+                    AppNavGraph(
+                        navHostController = navigationState.navHostController,
+                        news = { NewsScreen(viewModel = viewModel) },
+                        profile = { Profile() },
+                        favourite = { Favourite() }
+                    )
                 }
             }
         }

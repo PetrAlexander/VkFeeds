@@ -1,4 +1,4 @@
-package com.example.vkfeeds.presentation.feedposts
+package com.example.vkfeeds.presentation.news
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
